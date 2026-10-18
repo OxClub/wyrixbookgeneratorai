@@ -21,21 +21,21 @@ class BookWorker(ctx: Context, p: WorkerParameters) : CoroutineWorker(ctx, p) {
     }
 
     override suspend fun getForegroundInfo() =
-        ForegroundInfo(1, notif("Shuru ho raha hai..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        ForegroundInfo(1, notif("Starting..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
 
     override suspend fun doWork(): Result {
         val id = inputData.getLong("id", 0)
         try { setForeground(getForegroundInfo()) } catch (e: Exception) { /* background start: ab bhi chalega */ }
         return try {
             Engine.run(applicationContext, id) { nm.notify(1, notif(it)) }
-            nm.notify(2, notif("Book taiyar hai! App kholkar PDF/EPUB export karein", false))
+            nm.notify(2, notif("Your book is ready! Open the app to export PDF/EPUB", false))
             Result.success()
         } catch (e: NoKeys) {
-            nm.notify(2, notif(e.message ?: "API key chahiye", false)); Result.failure()
+            nm.notify(2, notif(e.message ?: "API key required", false)); Result.failure()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            nm.notify(2, notif("Ruki: ${e.message?.take(60)} - baad me apne aap dobara chalegi", false)); Result.retry()
+            nm.notify(2, notif("Paused: ${e.message?.take(60)} - will retry automatically", false)); Result.retry()
         }
     }
 }

@@ -79,9 +79,9 @@ fun Home(onNew: () -> Unit, onSettings: () -> Unit, onOpen: (Long) -> Unit) {
         Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(Color(0x14FFFFFF)).clickable(onClick = onSettings), contentAlignment = Alignment.Center) { Text("⚙️", fontSize = 20.sp) }
     }
     Spacer(Modifier.height(20.dp))
-    GradButton("✨  Nayi book banao", onClick = onNew)
+    GradButton("✨  Create new book", onClick = onNew)
     Spacer(Modifier.height(16.dp))
-    if (books.isEmpty()) Glass { Text("📚  Abhi koi book nahi. Ek prompt likhein, baaki app karegi.", color = Muted) }
+    if (books.isEmpty()) Glass { Text("📚  No books yet. Write one prompt and the app does the rest.", color = Muted) }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(books) { b ->
             Glass(Modifier.clickable { onOpen(b.id) }) {
@@ -105,18 +105,18 @@ fun NewBook(onDone: (Long) -> Unit) {
     var lang by remember { mutableStateOf("hi") }
     var pages by remember { mutableStateOf("100") }
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        GradTitle("Nayi book")
+        GradTitle("New book")
         Glass(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(prompt, { prompt = it }, label = { Text("Book ke baare me likhein") }, colors = fieldColors(),
+            OutlinedTextField(prompt, { prompt = it }, label = { Text("Describe your book") }, colors = fieldColors(),
                 modifier = Modifier.fillMaxWidth().height(170.dp))
             Text("Language", color = Muted, fontSize = 13.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("hi" to "Hindi", "en" to "English", "both" to "Dono").forEach { (k, l) -> Chip(l, lang == k) { lang = k } }
+                listOf("hi" to "Hindi", "en" to "English", "both" to "Both").forEach { (k, l) -> Chip(l, lang == k) { lang = k } }
             }
-            OutlinedTextField(pages, { pages = it.filter(Char::isDigit) }, label = { Text("Pages (10-600, andaza)") },
+            OutlinedTextField(pages, { pages = it.filter(Char::isDigit) }, label = { Text("Pages (10-600, approx.)") },
                 singleLine = true, colors = fieldColors(), modifier = Modifier.fillMaxWidth())
         }
-        GradButton("🚀  Book banao", enabled = prompt.isNotBlank()) {
+        GradButton("🚀  Generate book", enabled = prompt.isNotBlank()) {
             scope.launch {
                 val id = Db.get(ctx).dao().addBook(Book(prompt = prompt.trim(), lang = lang, pages = (pages.toIntOrNull() ?: 100).coerceIn(10, 600)))
                 onDone(id)
@@ -138,7 +138,7 @@ fun BookScreen(id: Long, onBack: () -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         b?.let { bk ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) { GradTitle(bk.title.ifBlank { "Book ban rahi hai..." }, 22.sp) }
+                Box(Modifier.weight(1f)) { GradTitle(bk.title.ifBlank { "Generating book..." }, 22.sp) }
                 StatusPill(bk.status)
             }
             Glass {
@@ -158,15 +158,15 @@ fun BookScreen(id: Long, onBack: () -> Unit) {
                 Glass(Modifier.weight(1f)) { Text("Pages (~)", color = Muted, fontSize = 12.sp); Text("${done * 800 / 300}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Gold) }
             }
             if (bk.status != "DONE") {
-                Text("App band karne par bhi kaam background me chalta rahega. Limit khatam ho to ruk kar apne aap resume hoga.", color = Muted, fontSize = 13.sp)
-                GradButton("▶  Resume / dobara chalao", brush = CoolBrush) { startBook(ctx, id) }
+                Text("Generation keeps running in the background even if you close the app. If a free limit runs out, it pauses and resumes automatically.", color = Muted, fontSize = 13.sp)
+                GradButton("▶  Resume generation", brush = CoolBrush) { startBook(ctx, id) }
             }
             if (done > 0) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 GradButton("📄 PDF", Modifier.weight(1f)) { export(true) }
                 GradButton("📖 EPUB", Modifier.weight(1f)) { export(false) }
             }
         }
-        GhostButton("←  Wapas", onClick = onBack)
+        GhostButton("←  Back", onClick = onBack)
     }
 }
 
@@ -178,8 +178,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     val total = remember(tick) { Providers.totalCached(ctx) }
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         GradTitle("API keys")
-        Text("Jitne providers ki key daaloge, utne zyada free models apne aap judenge.", color = Muted, fontSize = 13.sp)
-        Glass { Text("Kul models", color = Muted, fontSize = 12.sp); Text("$total", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Gold) }
+        Text("The more provider keys you add, the more free models connect automatically.", color = Muted, fontSize = 13.sp)
+        Glass { Text("Total models", color = Muted, fontSize = 12.sp); Text("$total", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Gold) }
         Providers.provs.forEach { pr ->
             var v by remember { mutableStateOf(p.getString(pr.id, "").orEmpty()) }
             var cnt by remember { mutableStateOf(Providers.cachedCount(ctx, pr)) }
@@ -190,17 +190,17 @@ fun SettingsScreen(onBack: () -> Unit) {
                 }
                 OutlinedTextField(v, { v = it; p.edit().putString(pr.id, it.trim()).apply() }, label = { Text("API key") }, singleLine = true,
                     colors = fieldColors(), visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
-                TextButton({ scope.launch { cnt = Providers.refresh(ctx, pr, v.trim()); tick++ } }, enabled = v.isNotBlank()) { Text("Models fetch karo", color = Cyan) }
+                TextButton({ scope.launch { cnt = Providers.refresh(ctx, pr, v.trim()); tick++ } }, enabled = v.isNotBlank()) { Text("Fetch models", color = Cyan) }
             }
         }
         Glass(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Custom (koi bhi OpenAI-compatible API)", fontWeight = FontWeight.Bold)
-            listOf("custom_url" to "Base URL (jaise https://api.deepseek.com/v1)", "custom_key" to "Key", "custom_model" to "Model naam").forEach { (k, l) ->
+            Text("Custom (any OpenAI-compatible API)", fontWeight = FontWeight.Bold)
+            listOf("custom_url" to "Base URL (e.g. https://api.deepseek.com/v1)", "custom_key" to "Key", "custom_model" to "Model name").forEach { (k, l) ->
                 var v by remember { mutableStateOf(p.getString(k, "").orEmpty()) }
                 OutlinedTextField(v, { v = it; p.edit().putString(k, it.trim()).apply(); tick++ }, label = { Text(l) }, singleLine = true,
                     colors = fieldColors(), modifier = Modifier.fillMaxWidth())
             }
         }
-        GhostButton("←  Wapas", onClick = onBack)
+        GhostButton("←  Back", onClick = onBack)
     }
 }

@@ -1,11 +1,11 @@
 # WYRIX BOOK GENERATOR AI
-Ek prompt -> poori book (Hindi/English/Dono), free AI models fallback ke saath, PDF + EPUB export.
+Write one prompt and get a full book (Hindi, English or both). Uses many free AI models with automatic fallback. Exports PDF and EPUB.
 
-## APK banana (GitHub Actions)
-1. Is folder ko ek GitHub repo me push karein.
-2. Actions tab -> "Build APK" chalayein -> Artifacts se `WYRIX-BOOK-GENERATOR-AI-APK` download karein.
-(Ya Android Studio me folder open karke Run karein.)
+## Build the APK (GitHub Actions)
+1. Push this folder to a GitHub repo.
+2. Open the Actions tab, run "Build APK", then download the `WYRIX-BOOK-GENERATOR-AI-APK` artifact.
+(Or open the folder in Android Studio and run it.)
 
 ## Use
-Settings me kam se kam ek free API key daalein -> Nayi book -> prompt likhein -> Book banao.
-Models hardcode nahi hain: app har provider ki key se uske free models khud fetch karti hai (Settings -> 'Models fetch karo'). Naya provider `Providers.kt` ki list me ek line se jud jaata hai.
+Settings -> add at least one free API key -> Fetch models -> New book -> write your prompt -> Generate book.
+Models are discovered automatically from each provider. To add a provider, add one line to the list in `Providers.kt`.

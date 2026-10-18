@@ -24,7 +24,7 @@ object Export {
         val dao = Db.get(ctx).dao()
         val b = dao.book(id)!!
         val ss = dao.sections(id).filter { it.status == "DONE" }
-        if (ss.isEmpty()) return@withContext "Abhi kuch likha nahi gaya"
+        if (ss.isEmpty()) return@withContext "Nothing has been written yet"
         val safe = b.title.ifBlank { "book$id" }.replace(Regex("[^\\p{L}\\p{N}]+"), "_")
         val versions = when (b.lang) { "en" -> listOf(false to "en"); "hi" -> listOf(false to "hi"); else -> listOf(false to "hi", true to "en") }
         for ((second, l) in versions) {
@@ -33,7 +33,7 @@ object Export {
             }
             if (pdf) pdf(ctx, "${safe}_$l", b.title, ch) else epub(ctx, "${safe}_$l", b.title, l, ch)
         }
-        "Downloads/WyrixBookGenerator me save ho gaya"
+        "Saved to Downloads/WyrixBookGenerator"
     }
 
     private fun save(ctx: Context, file: String, mime: String, write: (OutputStream) -> Unit) {

@@ -10,7 +10,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-class NoKeys : Exception("Settings me kam se kam ek API key daalein")
+class NoKeys : Exception("Add at least one API key in Settings")
 class RateLimit : Exception("429")
 class BadModel : Exception("model unusable")
 
@@ -149,6 +149,6 @@ object Providers {
             }
             delay(20_000)
         }
-        throw Exception("Sab models busy ya limit khatam")
+        throw Exception("All models are busy or out of limit")
     }
 }

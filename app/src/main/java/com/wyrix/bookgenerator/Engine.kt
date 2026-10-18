@@ -13,7 +13,7 @@ object Engine {
         val main = if (b.lang == "en") "English" else "Hindi (pure Devanagari script)"
 
         if (dao.totalNow(id) == 0) {
-            progress("Book ka plan ban raha hai...")
+            progress("Planning the book...")
             val n = (b.pages + 12) / 13
             val out = Providers.ask(ctx, """You are a professional book planner. Book request: "${b.prompt}"
 Language: $main. Target length: ${b.pages} pages.
