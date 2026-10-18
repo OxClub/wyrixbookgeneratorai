@@ -69,7 +69,8 @@ fun App() {
 
 @Composable
 fun Home(onNew: () -> Unit, onSettings: () -> Unit, onOpen: (Long) -> Unit) {
-    val dao = remember { Db.get(LocalContext.current).dao() }
+    val ctx = LocalContext.current
+    val dao = remember(ctx) { Db.get(ctx).dao() }
     val books by dao.books().collectAsState(emptyList())
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {

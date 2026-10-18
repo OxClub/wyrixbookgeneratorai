@@ -42,9 +42,9 @@ fun Screen(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun Glass(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun Glass(modifier: Modifier = Modifier, verticalArrangement: Arrangement.Vertical = Arrangement.Top, content: @Composable ColumnScope.() -> Unit) {
     val sh = RoundedCornerShape(20.dp)
-    Column(modifier.fillMaxWidth().clip(sh).background(Color(0x14FFFFFF)).border(1.dp, Edge, sh).padding(16.dp), content = content)
+    Column(modifier.fillMaxWidth().clip(sh).background(Color(0x14FFFFFF)).border(1.dp, Edge, sh).padding(16.dp), verticalArrangement = verticalArrangement, content = content)
 }
 
 @Composable
