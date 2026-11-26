@@ -24,52 +24,31 @@ object Providers {
     val provs = listOf(
         Prov("gemini", "Gemini", "https://generativelanguage.googleapis.com/v1beta", "gemini",
             keyUrl = "https://aistudio.google.com/apikey",
-            steps = "1. Open aistudio.google.com/apikey and sign in with your Google account.
-2. Tap \"Create API key\" (choose any project or let it create one).
-3. Copy the key (it starts with AIza) and paste it above.
-Free tier, no card needed."),
+            steps = "1. Open aistudio.google.com/apikey and sign in with your Google account.\n2. Tap \"Create API key\" (choose any project or let it create one).\n3. Copy the key (it starts with AIza) and paste it above.\nFree tier, no card needed."),
         Prov("groq", "Groq", "https://api.groq.com/openai/v1",
             keyUrl = "https://console.groq.com/keys",
-            steps = "1. Open console.groq.com/keys and sign up / log in.
-2. Tap \"Create API Key\", give it a name.
-3. Copy the key (starts with gsk_) - it is shown only once - and paste it above.
-Free tier, no card needed."),
+            steps = "1. Open console.groq.com/keys and sign up / log in.\n2. Tap \"Create API Key\", give it a name.\n3. Copy the key (starts with gsk_) - it is shown only once - and paste it above.\nFree tier, no card needed."),
         Prov("openrouter", "OpenRouter (free models)", "https://openrouter.ai/api/v1",
             keyUrl = "https://openrouter.ai/keys",
-            steps = "1. Open openrouter.ai/keys and sign in (Google/GitHub works).
-2. Tap \"Create Key\" and name it.
-3. Copy the key (starts with sk-or-) and paste it above.
-The app uses only the models marked free."),
+            steps = "1. Open openrouter.ai/keys and sign in (Google/GitHub works).\n2. Tap \"Create Key\" and name it.\n3. Copy the key (starts with sk-or-) and paste it above.\nThe app uses only the models marked free."),
         Prov("cerebras", "Cerebras", "https://api.cerebras.ai/v1",
             keyUrl = "https://cloud.cerebras.ai",
-            steps = "1. Open cloud.cerebras.ai and create a free account.
-2. Go to \"API Keys\" in the left menu.
-3. Tap \"Create API key\", copy it (starts with csk-) and paste it above."),
+            steps = "1. Open cloud.cerebras.ai and create a free account.\n2. Go to \"API Keys\" in the left menu.\n3. Tap \"Create API key\", copy it (starts with csk-) and paste it above."),
         Prov("mistral", "Mistral", "https://api.mistral.ai/v1",
             keyUrl = "https://console.mistral.ai/api-keys",
-            steps = "1. Open console.mistral.ai and create an account.
-2. Choose the free \"Experiment\" plan and verify your phone number when asked.
-3. Go to API Keys > \"Create new key\", copy it and paste it above."),
+            steps = "1. Open console.mistral.ai and create an account.\n2. Choose the free \"Experiment\" plan and verify your phone number when asked.\n3. Go to API Keys > \"Create new key\", copy it and paste it above."),
         Prov("sambanova", "SambaNova", "https://api.sambanova.ai/v1",
             keyUrl = "https://cloud.sambanova.ai/apis",
-            steps = "1. Open cloud.sambanova.ai and sign up.
-2. Open the \"APIs\" page from the menu.
-3. Tap \"Create API key\", copy it and paste it above."),
+            steps = "1. Open cloud.sambanova.ai and sign up.\n2. Open the \"APIs\" page from the menu.\n3. Tap \"Create API key\", copy it and paste it above."),
         Prov("nvidia", "NVIDIA NIM", "https://integrate.api.nvidia.com/v1",
             keyUrl = "https://build.nvidia.com",
-            steps = "1. Open build.nvidia.com and sign in / create a free NVIDIA account (phone verification may be asked).
-2. Open any model page and tap \"Get API Key\" (or \"Build with this NIM\").
-3. Tap \"Generate Key\", copy it (starts with nvapi-) and paste it above."),
+            steps = "1. Open build.nvidia.com and sign in / create a free NVIDIA account (phone verification may be asked).\n2. Open any model page and tap \"Get API Key\" (or \"Build with this NIM\").\n3. Tap \"Generate Key\", copy it (starts with nvapi-) and paste it above."),
         Prov("github", "GitHub Models", "https://models.github.ai/inference", listUrl = "https://models.github.ai/catalog/models",
             keyUrl = "https://github.com/settings/personal-access-tokens/new",
-            steps = "1. Sign in to GitHub and open Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token.
-2. Give it a name and, under Permissions, add \"Models: Read\".
-3. Generate, copy the token (starts with github_pat_) and paste it above."),
+            steps = "1. Sign in to GitHub and open Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token.\n2. Give it a name and, under Permissions, add \"Models: Read\".\n3. Generate, copy the token (starts with github_pat_) and paste it above."),
         Prov("hf", "HuggingFace", "https://router.huggingface.co/v1",
             keyUrl = "https://huggingface.co/settings/tokens",
-            steps = "1. Open huggingface.co/settings/tokens and sign in.
-2. Tap \"Create new token\" > type \"Fine-grained\" and enable \"Make calls to Inference Providers\".
-3. Create, copy the token (starts with hf_) and paste it above.")
+            steps = "1. Open huggingface.co/settings/tokens and sign in.\n2. Tap \"Create new token\" > type \"Fine-grained\" and enable \"Make calls to Inference Providers\".\n3. Create, copy the token (starts with hf_) and paste it above.")
     )
     private val BAD = listOf("embed", "whisper", "tts", "guard", "moderation", "rerank", "image", "audio", "vision", "ocr",
         "speech", "transcribe", "imagen", "veo", "aqa", "robotics", "live", "diffusion", "flux", "stable", "clip", "safety")
