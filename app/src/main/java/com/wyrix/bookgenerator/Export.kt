@@ -20,33 +20,37 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 object Export {
-    suspend fun run(ctx: Context, id: Long, pdf: Boolean): String = withContext(Dispatchers.IO) {
+    class Result(val message: String, val uris: List<android.net.Uri>, val mime: String)
+
+    suspend fun run(ctx: Context, id: Long, pdf: Boolean): Result = withContext(Dispatchers.IO) {
         val dao = Db.get(ctx).dao()
         val b = dao.book(id)!!
         val ss = dao.sections(id).filter { it.status == "DONE" }
-        if (ss.isEmpty()) return@withContext "Nothing has been written yet"
+        if (ss.isEmpty()) return@withContext Result("Nothing has been written yet", emptyList(), "")
         val safe = b.title.ifBlank { "book$id" }.replace(Regex("[^\\p{L}\\p{N}]+"), "_")
         val versions = when (b.lang) { "en" -> listOf(false to "en"); "hi" -> listOf(false to "hi"); else -> listOf(false to "hi", true to "en") }
+        val uris = ArrayList<android.net.Uri>()
         for ((second, l) in versions) {
             val ch = ss.groupBy { it.chIdx }.toSortedMap().map { (_, l2) ->
                 l2.first().chTitle to l2.joinToString("\n\n") { if (second) it.text2 else it.text }
             }
-            if (pdf) pdf(ctx, "${safe}_$l", b.title, ch) else epub(ctx, "${safe}_$l", b.title, l, ch)
+            uris += if (pdf) pdf(ctx, "${safe}_$l", b.title, ch) else epub(ctx, "${safe}_$l", b.title, l, ch)
         }
-        "Saved to Downloads/WyrixBookGenerator"
+        Result("Saved to Downloads/WyrixBookGenerator", uris, if (pdf) "application/pdf" else "application/epub+zip")
     }
 
-    private fun save(ctx: Context, file: String, mime: String, write: (OutputStream) -> Unit) {
+    private fun save(ctx: Context, file: String, mime: String, write: (OutputStream) -> Unit): android.net.Uri {
         val v = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, file); put(MediaStore.Downloads.MIME_TYPE, mime)
             put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/WyrixBookGenerator")
         }
         val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v)!!
         ctx.contentResolver.openOutputStream(uri)!!.use(write)
+        return uri
     }
 
     // System font fallback Devanagari khud render karta hai, alag font embed nahi karna padta.
-    private fun pdf(ctx: Context, name: String, title: String, ch: List<Pair<String, String>>) {
+    private fun pdf(ctx: Context, name: String, title: String, ch: List<Pair<String, String>>): android.net.Uri {
         val doc = PdfDocument(); val w = 595; val h = 842; val m = 50; var n = 0
         val tp = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 12f }
         fun pages(text: CharSequence) {
@@ -69,13 +73,13 @@ object Export {
         }
         pages(styled(title, 2f, ""))
         for ((t, b) in ch) pages(styled(t, 1.6f, "\n\n$b"))
-        save(ctx, "$name.pdf", "application/pdf") { doc.writeTo(it) }; doc.close()
+        val u = save(ctx, "$name.pdf", "application/pdf") { doc.writeTo(it) }; doc.close(); return u
     }
 
-    private fun epub(ctx: Context, name: String, title: String, lang: String, ch: List<Pair<String, String>>) {
+    private fun epub(ctx: Context, name: String, title: String, lang: String, ch: List<Pair<String, String>>): android.net.Uri {
         fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         val ns = """xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops""""
-        save(ctx, "$name.epub", "application/epub+zip") { out ->
+        return save(ctx, "$name.epub", "application/epub+zip") { out ->
             ZipOutputStream(out).use { z ->
                 fun put(path: String, s: String, stored: Boolean = false) {
                     val bytes = s.toByteArray(); val e = ZipEntry(path)

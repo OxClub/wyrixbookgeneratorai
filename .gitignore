@@ -1,3 +1,10 @@
 build/
 .gradle/
 local.properties
+.idea/
+*.iml
+# SECRETS - kabhi GitHub par push mat karna
+keystore.properties
+*.jks
+*.keystore
+wyrixbook.jks.base64.txt

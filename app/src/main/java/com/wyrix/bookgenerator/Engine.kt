@@ -16,7 +16,7 @@ object Engine {
             progress("Planning the book...")
             val n = (b.pages + 12) / 13
             val out = Providers.ask(ctx, """You are a professional book planner. Book request: "${b.prompt}"
-Language: $main. Target length: ${b.pages} pages.
+Type/genre: ${b.genre}. Language: $main. Target length: ${b.pages} pages.
 Return ONLY valid JSON, no markdown: {"title":"...","bible":"detailed plan: genre/type, tone, main characters or key concepts, setting, rules, and the ending","chapters":[{"title":"...","summary":"3-4 sentences"}]}
 Write exactly $n chapters. Titles and text must be in $main.""")
             val j = JSONObject(out.substring(out.indexOf('{'), out.lastIndexOf('}') + 1))
@@ -30,6 +30,7 @@ Write exactly $n chapters. Titles and text must be in $main.""")
             dao.saveBook(b.copy(title = j.getString("title"), bible = j.optString("bible"), status = "RUNNING"))
         }
 
+        dao.setStatus(id, "RUNNING")
         val total = dao.totalNow(id)
         while (true) {
             val s = dao.next(id) ?: break
@@ -38,7 +39,7 @@ Write exactly $n chapters. Titles and text must be in $main.""")
             var cur = s
             if (cur.text.isBlank()) {
                 val tail = dao.at(id, cur.idx - 1)?.text?.takeLast(700).orEmpty()
-                val txt = Providers.ask(ctx, """Book: "${b.title}". Language: $main.
+                val txt = Providers.ask(ctx, """Book: "${b.title}" (${b.genre}). Language: $main.
 BOOK PLAN: ${b.bible}
 STORY SO FAR: ${b.summary.ifBlank { "(just begun)" }}
 CURRENT CHAPTER ${cur.chIdx + 1}: ${cur.chTitle} - ${cur.chSummary}

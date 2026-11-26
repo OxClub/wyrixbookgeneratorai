@@ -15,21 +15,61 @@ class RateLimit : Exception("429")
 class BadModel : Exception("model unusable")
 
 /** kind = "openai" (OpenAI-compatible) ya "gemini". listUrl = models list ka alag URL (agar ho). */
-class Prov(val id: String, val name: String, val base: String, val kind: String = "openai", val listUrl: String? = null)
+class Prov(val id: String, val name: String, val base: String, val kind: String = "openai", val listUrl: String? = null,
+           val keyUrl: String = "", val steps: String = "")
 class Entry(val p: Prov, val key: String, val model: String) { val id get() = "${p.id}:$model" }
 
 object Providers {
     // Naya provider jodna ho to bas yahan ek line add karein. Order = priority.
     val provs = listOf(
-        Prov("gemini", "Gemini", "https://generativelanguage.googleapis.com/v1beta", "gemini"),
-        Prov("groq", "Groq", "https://api.groq.com/openai/v1"),
-        Prov("openrouter", "OpenRouter (free models)", "https://openrouter.ai/api/v1"),
-        Prov("cerebras", "Cerebras", "https://api.cerebras.ai/v1"),
-        Prov("mistral", "Mistral", "https://api.mistral.ai/v1"),
-        Prov("sambanova", "SambaNova", "https://api.sambanova.ai/v1"),
-        Prov("nvidia", "NVIDIA NIM", "https://integrate.api.nvidia.com/v1"),
-        Prov("github", "GitHub Models", "https://models.github.ai/inference", listUrl = "https://models.github.ai/catalog/models"),
-        Prov("hf", "HuggingFace", "https://router.huggingface.co/v1")
+        Prov("gemini", "Gemini", "https://generativelanguage.googleapis.com/v1beta", "gemini",
+            keyUrl = "https://aistudio.google.com/apikey",
+            steps = "1. Open aistudio.google.com/apikey and sign in with your Google account.
+2. Tap \"Create API key\" (choose any project or let it create one).
+3. Copy the key (it starts with AIza) and paste it above.
+Free tier, no card needed."),
+        Prov("groq", "Groq", "https://api.groq.com/openai/v1",
+            keyUrl = "https://console.groq.com/keys",
+            steps = "1. Open console.groq.com/keys and sign up / log in.
+2. Tap \"Create API Key\", give it a name.
+3. Copy the key (starts with gsk_) - it is shown only once - and paste it above.
+Free tier, no card needed."),
+        Prov("openrouter", "OpenRouter (free models)", "https://openrouter.ai/api/v1",
+            keyUrl = "https://openrouter.ai/keys",
+            steps = "1. Open openrouter.ai/keys and sign in (Google/GitHub works).
+2. Tap \"Create Key\" and name it.
+3. Copy the key (starts with sk-or-) and paste it above.
+The app uses only the models marked free."),
+        Prov("cerebras", "Cerebras", "https://api.cerebras.ai/v1",
+            keyUrl = "https://cloud.cerebras.ai",
+            steps = "1. Open cloud.cerebras.ai and create a free account.
+2. Go to \"API Keys\" in the left menu.
+3. Tap \"Create API key\", copy it (starts with csk-) and paste it above."),
+        Prov("mistral", "Mistral", "https://api.mistral.ai/v1",
+            keyUrl = "https://console.mistral.ai/api-keys",
+            steps = "1. Open console.mistral.ai and create an account.
+2. Choose the free \"Experiment\" plan and verify your phone number when asked.
+3. Go to API Keys > \"Create new key\", copy it and paste it above."),
+        Prov("sambanova", "SambaNova", "https://api.sambanova.ai/v1",
+            keyUrl = "https://cloud.sambanova.ai/apis",
+            steps = "1. Open cloud.sambanova.ai and sign up.
+2. Open the \"APIs\" page from the menu.
+3. Tap \"Create API key\", copy it and paste it above."),
+        Prov("nvidia", "NVIDIA NIM", "https://integrate.api.nvidia.com/v1",
+            keyUrl = "https://build.nvidia.com",
+            steps = "1. Open build.nvidia.com and sign in / create a free NVIDIA account (phone verification may be asked).
+2. Open any model page and tap \"Get API Key\" (or \"Build with this NIM\").
+3. Tap \"Generate Key\", copy it (starts with nvapi-) and paste it above."),
+        Prov("github", "GitHub Models", "https://models.github.ai/inference", listUrl = "https://models.github.ai/catalog/models",
+            keyUrl = "https://github.com/settings/personal-access-tokens/new",
+            steps = "1. Sign in to GitHub and open Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token.
+2. Give it a name and, under Permissions, add \"Models: Read\".
+3. Generate, copy the token (starts with github_pat_) and paste it above."),
+        Prov("hf", "HuggingFace", "https://router.huggingface.co/v1",
+            keyUrl = "https://huggingface.co/settings/tokens",
+            steps = "1. Open huggingface.co/settings/tokens and sign in.
+2. Tap \"Create new token\" > type \"Fine-grained\" and enable \"Make calls to Inference Providers\".
+3. Create, copy the token (starts with hf_) and paste it above.")
     )
     private val BAD = listOf("embed", "whisper", "tts", "guard", "moderation", "rerank", "image", "audio", "vision", "ocr",
         "speech", "transcribe", "imagen", "veo", "aqa", "robotics", "live", "diffusion", "flux", "stable", "clip", "safety")
@@ -78,7 +118,9 @@ object Providers {
         } catch (e: Exception) { cached() }
     }
 
-    private fun keyOf(ctx: Context, id: String) = ctx.getSharedPreferences("keys", 0).getString(id, "").orEmpty()
+    private fun keyOf(ctx: Context, id: String) = Prefs.keys(ctx).getString(id, "").orEmpty()
+    fun hasKeys(ctx: Context): Boolean = provs.any { keyOf(ctx, it.id).isNotBlank() } ||
+        (keyOf(ctx, "custom_key").isNotBlank() && keyOf(ctx, "custom_url").isNotBlank() && keyOf(ctx, "custom_model").isNotBlank())
     fun cachedCount(ctx: Context, p: Prov): Int =
         ctx.getSharedPreferences("models", 0).getString("m_${p.id}", null)?.let { JSONArray(it).length() } ?: 0
     fun totalCached(ctx: Context): Int =

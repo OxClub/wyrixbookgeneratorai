@@ -36,7 +36,7 @@ fun PremiumTheme(content: @Composable () -> Unit) = MaterialTheme(
 fun Screen(content: @Composable ColumnScope.() -> Unit) {
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Ink, Deep, Ink)))) {
         Surface(color = Color.Transparent, contentColor = Color.White) {
-            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 18.dp, vertical = 12.dp), content = content)
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 18.dp, vertical = 12.dp), content = content)
         }
     }
 }

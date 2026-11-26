@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK + AAB
 on: [push, workflow_dispatch]
 jobs:
   build:
@@ -9,9 +9,27 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - uses: android-actions/setup-android@v3
         with:
-          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: 8.9 }
+        with: { gradle-version: 8.13 }
+      # Debug APK (testing ke liye, signing nahi chahiye)
       - run: gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
-        with: { name: WYRIX-BOOK-GENERATOR-AI-APK, path: app/build/outputs/apk/debug/app-debug.apk }
+        with: { name: WYRIX-debug-apk, path: app/build/outputs/apk/debug/app-debug.apk }
+      # Signed release AAB (Play Store). Repo Secrets chahiye: WYRIX_KEYSTORE_BASE64, WYRIX_STORE_PASSWORD
+      - name: Decode keystore
+        env:
+          KS: ${{ secrets.WYRIX_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS" ]; then echo "$KS" | base64 -d > "$GITHUB_WORKSPACE/wyrixbook.jks"; echo "HAVE_KS=1" >> "$GITHUB_ENV"; fi
+      - name: Build release AAB
+        if: env.HAVE_KS == '1'
+        env:
+          WYRIX_STORE_FILE: wyrixbook.jks
+          WYRIX_STORE_PASSWORD: ${{ secrets.WYRIX_STORE_PASSWORD }}
+          WYRIX_KEY_ALIAS: wyrixbook
+          WYRIX_KEY_PASSWORD: ${{ secrets.WYRIX_STORE_PASSWORD }}
+        run: gradle bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: env.HAVE_KS == '1'
+        with: { name: WYRIX-release-aab, path: app/build/outputs/bundle/release/app-release.aab }
