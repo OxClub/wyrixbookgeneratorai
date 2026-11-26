@@ -4,12 +4,21 @@ import android.content.Context
 import org.json.JSONObject
 
 object Engine {
+    /** Generated text me explicit cheez mile to ek baar saaf karwao, phir bhi mile to rok do. */
+    private suspend fun clean(ctx: Context, t: String): String {
+        if (!ContentFilter.explicit(t)) return t
+        val r = Providers.ask(ctx, "Rewrite the following text with all sexual or explicit content removed. Keep the same language, story and length. Output only the text:\n\n$t")
+        if (ContentFilter.explicit(r)) throw ContentBlocked()
+        return r
+    }
+
     private const val PER = 5      // sections per chapter
     private const val WORDS = 800  // words per section
 
     suspend fun run(ctx: Context, id: Long, progress: suspend (String) -> Unit) {
         val dao = Db.get(ctx).dao()
         var b = dao.book(id) ?: return
+        if (ContentFilter.blocked(b.prompt)) throw ContentBlocked()
         val main = if (b.lang == "en") "English" else "Hindi (pure Devanagari script)"
 
         if (dao.totalNow(id) == 0) {
@@ -45,7 +54,7 @@ STORY SO FAR: ${b.summary.ifBlank { "(just begun)" }}
 CURRENT CHAPTER ${cur.chIdx + 1}: ${cur.chTitle} - ${cur.chSummary}
 Write part ${cur.part} of $PER of this chapter, about $WORDS words, in $main. Continue seamlessly from the previous text. Do not repeat earlier events, do not summarize, no headings, notes or commentary - output only the book text.
 PREVIOUS TEXT ENDS: $tail""")
-                cur = cur.copy(text = txt); dao.saveSection(cur)
+                cur = cur.copy(text = clean(ctx, txt)); dao.saveSection(cur)
             }
             if (b.lang == "both" && cur.text2.isBlank()) {
                 cur = cur.copy(text2 = Providers.ask(ctx, "Translate into natural English. Output only the translation:\n\n${cur.text}"))

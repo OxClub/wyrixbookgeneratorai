@@ -168,7 +168,8 @@ The app uses only the models marked free."),
         return m.getString("content")
     }
 
-    suspend fun ask(ctx: Context, prompt: String): String {
+    suspend fun ask(ctx: Context, userPrompt: String): String {
+        val prompt = ContentFilter.SAFETY + userPrompt
         val list = entries(ctx)
         if (list.isEmpty()) throw NoKeys()
         repeat(4) {
@@ -178,11 +179,14 @@ The app uses only the models marked free."),
                 try {
                     val r = withContext(Dispatchers.IO) { call(e, prompt) }
                         .replace(Regex("(?s)<think>.*?</think>"), "").trim()
+                    if (r.contains(ContentFilter.MARK)) throw ContentBlocked()
                     if (r.isNotBlank()) return r
                 } catch (x: RateLimit) {
                     cool[e.id] = t + 120_000; coolProv[e.p.id] = t + 10_000
                 } catch (x: BadModel) {
                     cool[e.id] = t + 6 * 3_600_000L
+                } catch (x: ContentBlocked) {
+                    throw x
                 } catch (x: CancellationException) {
                     throw x
                 } catch (x: Exception) {

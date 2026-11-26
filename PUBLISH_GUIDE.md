@@ -46,6 +46,14 @@
    - **Generative AI**: app me AI content report karne ka button hai (Reader / About screen), ye Play ki AI-content policy ke liye zaroori hai. Support email sahi daalna na bhoolo.
 6. Har naye update se pehle `app/build.gradle.kts` me `versionCode` +1 karo.
 
+## 3b. Adult / unsafe content protection (Play policy)
+App 3 layer me rokta hai:
+1. **Prompt filter** (`ContentFilter.kt`): English, Hinglish aur Hindi (Devanagari) me sexual/18+, minors se related, bomb/suicide-method jaise prompts "Generate" dabate hi block ho jate hain.
+2. **AI safety rules**: har AI request ke saath safety instruction jaati hai; model mana kare to book `BLOCKED` ho jati hai.
+3. **Output scan**: likha hua text me explicit shabd mile to ek baar saaf karwata hai, phir bhi mile to book rok deta hai.
+Aur Reader/About me "Report content" button hai. Blocked word list `ContentFilter.kt` me hai, aap aur shabd jod sakte ho.
+Dhyan rahe: koi bhi filter 100% nahi hota (user spelling badal sakta hai). Isliye Play Console ke content rating form me honestly AI-generated text batao, aur target audience 18+ rakhne ka option bhi soch lo.
+
 ## 4. App me kya naya hai
 - Naam: "WYRIX - AI Book Generator & Story Writer"; aapki image launcher icon (adaptive + round) aur notification me.
 - Har API key ke niche **"How to get this key"** steps + website kholne ka button (Gemini, Groq, OpenRouter, Cerebras, Mistral, SambaNova, NVIDIA, GitHub Models, HuggingFace, Custom/DeepSeek).

@@ -141,6 +141,13 @@ fun NewBook(onNeedKeys: () -> Unit, onDone: (Long) -> Unit) {
     var lang by remember { mutableStateOf("hi") }
     var genre by remember { mutableStateOf("Story") }
     var pages by remember { mutableStateOf("100") }
+    var blockedMsg by remember { mutableStateOf(false) }
+    if (blockedMsg) AlertDialog(
+        onDismissRequest = { blockedMsg = false },
+        title = { Text("Request not allowed") },
+        text = { Text("WYRIX does not create adult, sexual, hateful or other unsafe content. Please change your prompt to a clean, family-friendly topic.") },
+        confirmButton = { TextButton({ blockedMsg = false }) { Text("OK") } }
+    )
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         GradTitle("New book")
         Glass(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -156,10 +163,12 @@ fun NewBook(onNeedKeys: () -> Unit, onDone: (Long) -> Unit) {
             }
             OutlinedTextField(pages, { pages = it.filter(Char::isDigit).take(3) }, label = { Text("Pages (10-600, approx.)") },
                 singleLine = true, colors = fieldColors(), modifier = Modifier.fillMaxWidth())
-            Text("AI-written text can contain mistakes. Please review before publishing.", color = Muted, fontSize = 12.sp)
+            Text("AI-written text can contain mistakes. Adult, sexual or unsafe content is not allowed and will be blocked.", color = Muted, fontSize = 12.sp)
         }
         GradButton("🚀  Generate book", enabled = prompt.isNotBlank()) {
-            if (!Providers.hasKeys(ctx)) {
+            if (ContentFilter.blocked(prompt)) {
+                blockedMsg = true
+            } else if (!Providers.hasKeys(ctx)) {
                 Toast.makeText(ctx, "Add at least one API key first", Toast.LENGTH_LONG).show(); onNeedKeys()
             } else scope.launch {
                 val id = Db.get(ctx).dao().addBook(Book(prompt = prompt.trim(), lang = lang, genre = genre, pages = (pages.toIntOrNull() ?: 100).coerceIn(10, 600)))
@@ -252,7 +261,8 @@ fun BookScreen(id: Long, onRead: () -> Unit, onBack: () -> Unit) {
                 Glass(Modifier.weight(1f)) { Text("Sections", color = Muted, fontSize = 12.sp); Text("$done / $total", fontWeight = FontWeight.Bold, fontSize = 18.sp) }
                 Glass(Modifier.weight(1f)) { Text("Pages (~)", color = Muted, fontSize = 12.sp); Text("${done * 800 / 300}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Gold) }
             }
-            if (bk.status != "DONE") {
+            if (bk.status == "BLOCKED") Glass { Text("This book was stopped because it contains content that is not allowed. Please delete it and try a different, family-friendly prompt.", color = Pink, fontSize = 13.sp) }
+            if (bk.status != "DONE" && bk.status != "BLOCKED") {
                 Text("Generation keeps running in the background even if you close the app. If a free limit runs out, it pauses and resumes automatically.", color = Muted, fontSize = 13.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     GradButton("▶  Resume", Modifier.weight(1f), brush = CoolBrush) {

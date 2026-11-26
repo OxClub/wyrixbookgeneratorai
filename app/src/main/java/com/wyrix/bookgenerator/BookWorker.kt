@@ -36,6 +36,9 @@ class BookWorker(ctx: Context, p: WorkerParameters) : CoroutineWorker(ctx, p) {
             Engine.run(applicationContext, id) { nm.notify(1, notif(it)) }
             nm.notify(2, notif("Your book is ready! Open the app to export PDF/EPUB", false))
             Result.success()
+        } catch (e: ContentBlocked) {
+            Db.get(applicationContext).dao().let { d -> d.book(id)?.let { d.saveBook(it.copy(status = "BLOCKED")) } }
+            nm.notify(2, notif("Stopped: this book request contains content that is not allowed.", false)); Result.failure()
         } catch (e: NoKeys) {
             nm.notify(2, notif(e.message ?: "API key required", false)); Result.failure()
         } catch (e: CancellationException) {

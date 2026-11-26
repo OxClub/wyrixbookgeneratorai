@@ -70,7 +70,7 @@ fun Chip(text: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun StatusPill(status: String) {
-    val c = when (status) { "DONE" -> Mint; "RUNNING" -> Cyan; else -> Color(0xFF9CA3AF) }
+    val c = when (status) { "DONE" -> Mint; "RUNNING" -> Cyan; "BLOCKED" -> Pink; else -> Color(0xFF9CA3AF) }
     Text(status, color = c, fontSize = 11.sp, fontWeight = FontWeight.Bold,
         modifier = Modifier.clip(RoundedCornerShape(50)).background(c.copy(alpha = 0.15f)).padding(horizontal = 10.dp, vertical = 4.dp))
 }
