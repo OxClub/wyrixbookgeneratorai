@@ -39,10 +39,11 @@ import androidx.work.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-/** Play Console me privacy policy URL yahi dalna hai. privacy_policy.html ko apni site/GitHub Pages par host karke yahan URL badal dein. */
-const val PRIVACY_URL = "https://YOUR-USERNAME.github.io/wyrix-privacy/privacy_policy.html"
+/** Play Console me privacy policy URL yahi dalna hai (GitHub Pages: Settings > Pages > main / root). */
+const val PRIVACY_URL = "https://oxclub.github.io/wyrixbookgeneratorai/privacy_policy.html"
+const val GITHUB_URL = "https://github.com/OxClub/wyrixbookgeneratorai"
 /** Play AI-content policy: users ko offensive/galat content report karne ka tareeka chahiye. Apna support email yahan dalein. */
-const val SUPPORT_EMAIL = "support@yourdomain.com"
+const val SUPPORT_EMAIL = "oxclub@proton.me"
 val GENRES = listOf("Story", "Novel", "Self-help", "Kids", "Educational", "Biography")
 
 class MainActivity : ComponentActivity() {
@@ -161,7 +162,7 @@ fun NewBook(onNeedKeys: () -> Unit, onDone: (Long) -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("hi" to "Hindi", "en" to "English", "both" to "Both").forEach { (k, l) -> Chip(l, lang == k) { lang = k } }
             }
-            OutlinedTextField(pages, { pages = it.filter(Char::isDigit).take(3) }, label = { Text("Pages (10-600, approx.)") },
+            OutlinedTextField(pages, { pages = it.filter(Char::isDigit).take(4) }, label = { Text("Pages (100-1000, approx.)") },
                 singleLine = true, colors = fieldColors(), modifier = Modifier.fillMaxWidth())
             Text("AI-written text can contain mistakes. Adult, sexual or unsafe content is not allowed and will be blocked.", color = Muted, fontSize = 12.sp)
         }
@@ -171,7 +172,7 @@ fun NewBook(onNeedKeys: () -> Unit, onDone: (Long) -> Unit) {
             } else if (!Providers.hasKeys(ctx)) {
                 Toast.makeText(ctx, "Add at least one API key first", Toast.LENGTH_LONG).show(); onNeedKeys()
             } else scope.launch {
-                val id = Db.get(ctx).dao().addBook(Book(prompt = prompt.trim(), lang = lang, genre = genre, pages = (pages.toIntOrNull() ?: 100).coerceIn(10, 600)))
+                val id = Db.get(ctx).dao().addBook(Book(prompt = prompt.trim(), lang = lang, genre = genre, pages = (pages.toIntOrNull() ?: 100).coerceIn(100, 1000)))
                 onDone(id)
             }
         }
@@ -403,6 +404,7 @@ fun AboutScreen(onBack: () -> Unit) {
             Text("Privacy", fontWeight = FontWeight.Bold)
             Text("• Your prompts and the text being written are sent directly from your phone to the AI providers whose API keys you added (for example Google Gemini, Groq, OpenRouter). Their own privacy policies apply to that data.\n• Your API keys are stored encrypted on this device and are never sent to us.\n• Books are stored only on your device. We run no servers and collect no personal data.\n• You can delete any book, or clear the app data, at any time.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
             GhostButton("🔗  Full privacy policy") { openUrl(ctx, PRIVACY_URL) }
+            GhostButton("💻  Developer: OxClub on GitHub") { openUrl(ctx, GITHUB_URL) }
         }
         Glass(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("AI content notice", fontWeight = FontWeight.Bold)

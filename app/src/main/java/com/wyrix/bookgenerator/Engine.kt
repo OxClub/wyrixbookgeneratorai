@@ -1,9 +1,12 @@
 package com.wyrix.bookgenerator
 
 import android.content.Context
+import org.json.JSONArray
 import org.json.JSONObject
 
 object Engine {
+    private fun json(s: String) = JSONObject(s.substring(s.indexOf('{'), s.lastIndexOf('}') + 1))
+
     /** Generated text me explicit cheez mile to ek baar saaf karwao, phir bhi mile to rok do. */
     private suspend fun clean(ctx: Context, t: String): String {
         if (!ContentFilter.explicit(t)) return t
@@ -24,19 +27,41 @@ object Engine {
         if (dao.totalNow(id) == 0) {
             progress("Planning the book...")
             val n = (b.pages + 12) / 13
+            val first = minOf(n, 20)
             val out = Providers.ask(ctx, """You are a professional book planner. Book request: "${b.prompt}"
-Type/genre: ${b.genre}. Language: $main. Target length: ${b.pages} pages.
+Type/genre: ${b.genre}. Language: $main. Target length: ${b.pages} pages ($n chapters in total).
 Return ONLY valid JSON, no markdown: {"title":"...","bible":"detailed plan: genre/type, tone, main characters or key concepts, setting, rules, and the ending","chapters":[{"title":"...","summary":"3-4 sentences"}]}
-Write exactly $n chapters. Titles and text must be in $main.""")
-            val j = JSONObject(out.substring(out.indexOf('{'), out.lastIndexOf('}') + 1))
-            val ch = j.getJSONArray("chapters")
+In "chapters" write exactly $first chapters: the first $first of the $n chapters of the whole book. Titles and text must be in $main.""")
+            val j = json(out)
+            val bookTitle = j.getString("title")
+            val bible = j.optString("bible")
+            val titles = ArrayList<Pair<String, String>>()
+            fun add(a: JSONArray) {
+                for (c in 0 until a.length()) { val o = a.getJSONObject(c); titles.add(o.getString("title") to o.optString("summary")) }
+            }
+            add(j.getJSONArray("chapters"))
+            var tries = 0
+            while (titles.size < n && tries < 12) {
+                tries++
+                progress("Planning chapters ${titles.size}/$n...")
+                val need = minOf(20, n - titles.size)
+                val prev = titles.joinToString("\n") { it.first }
+                val o2 = Providers.ask(ctx, """Continue planning the book "$bookTitle" ($main).
+BOOK PLAN: $bible
+CHAPTERS SO FAR (titles only):
+$prev
+Return ONLY valid JSON, no markdown: {"chapters":[{"title":"...","summary":"3-4 sentences"}]}
+Write exactly $need NEW chapters, chapter ${titles.size + 1} to ${titles.size + need} of $n, continuing toward the planned ending. Do not repeat earlier chapters. Titles and text must be in $main.""")
+                val a = json(o2).getJSONArray("chapters")
+                if (a.length() == 0) break
+                add(a)
+            }
             val list = ArrayList<Section>()
-            for (c in 0 until ch.length()) {
-                val o = ch.getJSONObject(c)
-                for (p in 1..PER) list.add(Section(bookId = id, idx = c * PER + p, chIdx = c, chTitle = o.getString("title"), chSummary = o.optString("summary"), part = p))
+            titles.forEachIndexed { c, (t, sm) ->
+                for (p in 1..PER) list.add(Section(bookId = id, idx = c * PER + p, chIdx = c, chTitle = t, chSummary = sm, part = p))
             }
             dao.addSections(list)
-            dao.saveBook(b.copy(title = j.getString("title"), bible = j.optString("bible"), status = "RUNNING"))
+            dao.saveBook(b.copy(title = bookTitle, bible = bible, status = "RUNNING"))
         }
 
         dao.setStatus(id, "RUNNING")

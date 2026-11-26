@@ -1,11 +1,12 @@
 # WYRIX - Play Store publish guide (Hinglish)
 
 ## 0. Pehle ye 3 cheezein badalni hain
-1. `app/src/main/java/com/wyrix/bookgenerator/MainActivity.kt` ke top par:
-   - `PRIVACY_URL` -> `privacy_policy.html` ko host karke uska link (GitHub Pages free hai).
-   - `SUPPORT_EMAIL` -> apna asli email (policy aur privacy_policy.html me bhi `support@yourdomain.com` badal dein).
-2. Play Store me app ka **title max 30 characters** hota hai. "WYRIX - AI Book Generator & Story Writer" 40 characters ka hai, isliye Play Console me title daalo: **WYRIX - AI Book Generator** (25 chars). Phone ke andar app ka naam poora "WYRIX - AI Book Generator & Story Writer" hi dikhega.
-3. Pehli baar build karke test karo (neeche step 1). Main apne yahan Gradle build run nahi kar paya (internet band tha), isliye agar koi compile error aaye to error bhej dena, main fix kar dunga.
+1. **Privacy policy ko online karo (GitHub Pages, free):** repo `OxClub/wyrixbookgeneratorai` > Settings > Pages > Source: "Deploy from a branch" > Branch: `main` / folder `/ (root)` > Save. 1-2 minute baad ye link chalega (app aur Play Console dono me yahi use hoga, `MainActivity.kt` me pehle se daala hua hai):
+   `https://oxclub.github.io/wyrixbookgeneratorai/privacy_policy.html`
+   (Free Pages ke liye repo **public** hona chahiye. Public repo me jks/keystore.properties kabhi mat daalna.)
+2. Support email `oxclub@proton.me` app aur privacy policy dono me set hai.
+3. Play Store me app ka **title max 30 characters** hota hai. "WYRIX - AI Book Generator & Story Writer" 40 characters ka hai, isliye Play Console me title daalo: **WYRIX - AI Book Generator** (25 chars). Phone ke andar app ka naam poora "WYRIX - AI Book Generator & Story Writer" hi dikhega.
+4. Pehli baar build karke test karo (neeche step 1). Main apne yahan Gradle build run nahi kar paya (internet band tha), isliye agar koi compile error aaye to error bhej dena, main fix kar dunga.
 
 ## 1. AAB (Play Store file) kaise banayein
 
